@@ -41,8 +41,8 @@ struct serial_ops {
 };
 
 
-/* Generic usart/uart setup func */
-void usart_init(void);
+/* Generic uart setup func */
+void uart_init(void);
 /* Generic serial init func */
 int serial_init(void);
 
