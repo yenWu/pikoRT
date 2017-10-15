@@ -1,25 +1,48 @@
 #include <kernel/sched.h>
 #include <kernel/thread.h>
 
-extern const struct sched sched_rr;
-extern const struct sched sched_bitmap;
+extern unsigned long __sched_classes_start__;
+extern unsigned long __sched_classes_end__;
 
-static const struct sched *sched;
+/* static vars to repesent sched classes list */
+static struct sched **sched_classes = 
+    (struct sched **) &__sched_classes_start__;
+static struct sched **sched_classes_end = 
+    (struct sched **) &__sched_classes_end__;
 
-int sched_select(int sched_type)
+static struct sched *sched;
+
+int sched_init()
 {
-    switch (sched_type) {
-    case SCHED_CLASS_RR:
-        sched = &sched_rr;
-        break;
-    case SCHED_CLASS_BITMAP:
-        sched = &sched_bitmap;
-        break;
-    default:
-        return -1;
+    int ret = 0;
+
+    /* Initialize each scheduler class by traversing hooks */
+    for (struct sched **c = sched_classes;
+            c < sched_classes_end; c++) {
+        struct sched *class = *c;
+        ret |= class->init();
     }
 
-    return sched->init();
+    return ret;
+}
+
+int sched_select(sched_class_t sched_type)
+{
+    int ret = -1;
+    struct sched *class = NULL;
+    
+    /* Examine specified sched class in hooks or not */
+    for (struct sched **c = sched_classes;
+            c < sched_classes_end; c++)
+        if (sched_type == (*c)->class_type)
+            class = *c;
+    
+    if (class) {
+        sched = class;
+        ret = 0;
+    }
+
+    return ret;
 }
 
 int sched_enqueue(struct thread_info *thread)
