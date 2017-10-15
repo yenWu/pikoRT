@@ -3,36 +3,33 @@
 
 #include "platform.h"
 #include "kernel/kernel.h"
-#include "stm32-usart.h"
+#include "stm32-uart.h"
 
 #define STM32_USART_MAX 8
 
-static void usart_port_setup(struct stm32_usart_port *port) {
+static void uart_port_setup(struct stm32_uart_port *port) {
     /* Enable peripherals and GPIO Clocks */
     /* Enable GPIO TX/RX clock */
     port->gpio_tx_clk_enable();
     port->gpio_rx_clk_enable();
 
     /* Enable USART/UART clock */
-    port->usart_clk_enable();
+    port->uart_clk_enable();
 }
 
-static void usart_port_init(struct stm32_usart_port *port) {
+static void uart_port_init(struct stm32_uart_port *port) {
     /* GPIO initialized with USART/UART Tx/Rx configuration */
     port->gpio_init(port->gpio_tx, &port->gpio_tx_init_info);
     port->gpio_init(port->gpio_rx, &port->gpio_rx_init_info);
 
-    /* USART/UART init */
-    /* Set the USART peripheral in the Asynchronous mode (UART Mode) */
-    if (port->uart_init)
-        port->uart_init(&port->uart_init_info);
-    else
-        port->usart_init(&port->usart_init_info);
+    /* UART init */
+    port->uart_init(&port->uart_init_info);
 }
 
 void uart_init(void)
 {
-    struct stm32_usart_port ports[STM32_USART_MAX] = {
+    // clang-format off
+    struct stm32_uart_port ports[STM32_USART_MAX] = {
         /* [0] USART1 */
         [0] = {
             .gpio_tx = GPIOA,
@@ -76,7 +73,7 @@ void uart_init(void)
         
             .gpio_tx_clk_enable = PLAT_EVAL(__HAL_RCC_GPIOA_CLK_ENABLE()),
             .gpio_rx_clk_enable = PLAT_EVAL(__HAL_RCC_GPIOA_CLK_ENABLE()),
-            .usart_clk_enable = PLAT_EVAL(__HAL_RCC_USART2_CLK_ENABLE()),
+            .uart_clk_enable = PLAT_EVAL(__HAL_RCC_USART2_CLK_ENABLE()),
        },
         /* [1] USART2 */
         /* [2] USART3 */
@@ -86,6 +83,7 @@ void uart_init(void)
         /* [6] UART7 */
         /* [7] UART8 */
     };
+    // clang-format on
 
     /* Specify initialize order */
     int init_order[] = {0};
@@ -93,12 +91,12 @@ void uart_init(void)
     /* USART/UART port setup */
     for (size_t i = 0; i < ARRAY_SIZE(init_order); i++) {
         int idx = init_order[i];
-        usart_port_setup(&ports[idx]);
+        uart_port_setup(&ports[idx]);
     }
 
     /* USART/UART port init */
     for (size_t i = 0; i < ARRAY_SIZE(init_order); i++) {
         int idx = init_order[i];
-        usart_port_init(&ports[idx]);
+        uart_port_init(&ports[idx]);
     }
 }
