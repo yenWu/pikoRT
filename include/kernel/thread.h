@@ -45,6 +45,10 @@ struct thread_info {
      * on, the exit value when thread is not yet joined, etc. */
     void *ti_private;
 
+    /* PI-Mutex supported */
+    int ti_realprio;
+    kernel_mutex_t kmtx_list;
+
 /* /\* local-storage *\/ */
 /* struct list_head *ti_lsq; // local-storage queue */
 
@@ -155,6 +159,8 @@ int thread_yield(void);
 int thread_self(void);
 void thread_exit(void *);
 int thread_set_priority(struct thread_info *thread, int priority);
+int thread_set_prio(struct thread_info *thread, int priority);
+int thread_set_realprio(struct thread_info *thread, int priority);
 int thread_detach(pthread_t thread);
 
 static inline struct thread_info *current_thread_info(void)

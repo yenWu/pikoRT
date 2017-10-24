@@ -141,8 +141,23 @@ void thread_exit(void *retval)
 
 int thread_set_priority(struct thread_info *thread, int priority)
 {
+    thread_set_priority(thread, priority);
+    thread_set_realprio(thread, priority);
+
+    return 0;
+}
+
+int thread_set_prio(struct thread_info *thread, int priority)
+{
     /* priority change is effective on next scheduling */
     thread->ti_priority = priority;
+
+    return 0;
+}
+
+int thread_set_realprio(struct thread_info *thread, int priority)
+{
+    thread->ti_realprio = priority;
 
     return 0;
 }
